@@ -2,9 +2,31 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>/categories/</loc>
+    <loc>/posts/2016-01-26-mos-fpga-alu/</loc>
+    <lastmod>2016-01-26T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>/posts/</loc>
+    <lastmod>2016-01-26T00:00:00+00:00</lastmod>
   </url><url>
     <loc>/</loc>
+    <lastmod>2016-01-26T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>/posts/2016-01-25-mos-fpga-intro/</loc>
+    <lastmod>2016-01-25T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>/posts/2015-03-04-how-to-create-assembly-only-project-for/</loc>
+    <lastmod>2015-03-04T06:42:00-05:00</lastmod>
+  </url><url>
+    <loc>/posts/2015-03-03-back-from-dead/</loc>
+    <lastmod>2015-03-03T05:22:00-05:00</lastmod>
+  </url><url>
+    <loc>/posts/2011-09-22-turn-off-tvs-with-arduino/</loc>
+    <lastmod>2011-09-22T23:12:00-04:00</lastmod>
+  </url><url>
+    <loc>/posts/2011-09-22-hello-world/</loc>
+    <lastmod>2011-09-22T20:17:00-04:00</lastmod>
+  </url><url>
+    <loc>/categories/</loc>
   </url><url>
     <loc>/tags/</loc>
   </url>

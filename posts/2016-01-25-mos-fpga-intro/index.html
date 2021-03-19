@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+      <title>
+        6502 on FPGA: An Introduction ::
+        ricardo.angeli
+      </title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta
+  name="description"
+  content="Introduction to the Introduction So during the fall semester 2015, I took an FPGA design class as a technical elective at university. I discovered through the various projects and assignments that I really enjoyed working with FPGAs and addressing the challenges that come with programming logic and thinking in parallel. So to continue this path, I planned out a semester of independent study during spring 2016 where I work on a project where I design my own microprocessor from scratch on an FPGA."
+/>
+<meta
+  name="keywords"
+  content=""
+/>
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="/posts/2016-01-25-mos-fpga-intro/" />
+
+
+
+
+
+<link rel="stylesheet" href="/assets/style.css" />
+
+<link rel="stylesheet" href="/style.css" />
+
+
+<link
+  rel="apple-touch-icon-precomposed"
+  sizes="144x144"
+  href="/img/apple-touch-icon-144-precomposed.png"
+/>
+<link rel="shortcut icon" href="/img/favicon.png" />
+
+
+<link href="/assets/fonts/Inter-Italic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/assets/fonts/Inter-Regular.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/assets/fonts/Inter-Medium.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/assets/fonts/Inter-MediumItalic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/assets/fonts/Inter-Bold.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/assets/fonts/Inter-BoldItalic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="6502 on FPGA: An Introduction"/>
+<meta name="twitter:description" content="Introduction to the Introduction So during the fall semester 2015, I took an FPGA design class as a technical elective at university. I discovered through the various projects and assignments that I really enjoyed working with FPGAs and addressing the challenges that come with programming logic and thinking in parallel. So to continue this path, I planned out a semester of independent study during spring 2016 where I work on a project where I design my own microprocessor from scratch on an FPGA."/>
+
+
+
+<meta property="og:title" content="6502 on FPGA: An Introduction" />
+<meta property="og:description" content="Introduction to the Introduction So during the fall semester 2015, I took an FPGA design class as a technical elective at university. I discovered through the various projects and assignments that I really enjoyed working with FPGAs and addressing the challenges that come with programming logic and thinking in parallel. So to continue this path, I planned out a semester of independent study during spring 2016 where I work on a project where I design my own microprocessor from scratch on an FPGA." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/posts/2016-01-25-mos-fpga-intro/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2016-01-25T00:00:00&#43;00:00" />
+<meta property="article:modified_time" content="2016-01-25T00:00:00&#43;00:00" /><meta property="og:site_name" content="ricardo.angeli" />
+
+
+
+
+
+
+
+  </head>
+  <body class="dark-theme">
+    <div class="container">
+      <header class="header">
+  <span class="header__inner">
+    <a
+  href="/"
+  class="logo"
+  style="text-decoration: none;"
+>
+  
+    <span class="logo__mark"><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44">
+  <path fill="none" d="M15 8l14.729 14.382L15 35.367" />
+</svg>
+</span>
+    <span class="logo__text"
+      >ricardo.angeli</span
+    >
+    <span class="logo__cursor"></span>
+  
+</a>
+
+    <span class="header__right">
+      
+        <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+      
+      
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+  </ul>
+</nav>
+
+        <span class="menu-trigger">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M0 0h24v24H0z" fill="none" />
+            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
+          </svg>
+        </span>
+      
+      <span class="theme-toggle">
+        <svg
+  class="theme-toggler"
+  width="24"
+  height="24"
+  viewBox="0 0 48 48"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M22 41C32.4934 41 41 32.4934 41 22C41 11.5066 32.4934 3 22
+  3C11.5066 3 3 11.5066 3 22C3 32.4934 11.5066 41 22 41ZM7 22C7
+  13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22Z"
+  />
+</svg>
+
+      </span>
+    </span>
+  </span>
+</header>
+
+
+      <div class="content">
+        
+  
+  
+
+  <div class="post">
+    <h1 class="post-title">6502 on FPGA: An Introduction</h1>
+    <div class="post-meta">
+      
+        <span class="post-date">
+          2016-01-25
+        </span>
+
+        
+          
+        
+      
+
+      
+        <span class="post-author"
+          >— Written by R. Angeli</span
+        >
+
+
+      
+        <span class="post-read-time"
+          >— 3 min read</span
+        >
+      
+    </div>
+
+    
+
+    
+
+    <div class="post-content">
+      
+      <h2 id="introduction-to-the-introduction">Introduction to the Introduction</h2>
+<p>So during the fall semester 2015, I took an FPGA design class as a technical elective at university.  I discovered through the various projects and assignments that I really enjoyed working with FPGAs and addressing the challenges that come with programming logic and thinking in parallel.  So to continue this path, I planned out a semester of independent study during spring 2016 where I work on a project where I design my own microprocessor from scratch on an FPGA.  The architecture is based on the classic <a href="https://en.wikipedia.org/wiki/MOS_Technology_6502">MOS 6502</a> and so the project was born.</p>
+<p><img src="https://upload.wikimedia.org/wikipedia/commons/4/49/MOS_6502AD_4585_top.jpg" alt="image"></p>
+<h2 id="sixty-five-oh-who">Sixty-five-oh-who?</h2>
+<p>It&rsquo;s an 8-bit microprocessor first introduced way back in 1975 by MOS Technology and revolutionized the home computer and game console industry throughout the 80&rsquo;s.  It was the brains of landmark systems such as the Atari, Apple II, Nintendo NES, and Commodore 64.  It has only 3 registers (A, X, and Y) and a stack pointer.  Here&rsquo;s how the assembly language looks like:</p>
+<!-- raw HTML omitted -->
+<p>The fact that it&rsquo;s so simple and so ubiquitous makes this a perfect target to learn about computer architectures and implementing them on an FPGA.  Though it was way before my time, a lot of people grew up with this chip and with the invention of the internet we started seeing countless projects dedicated to documenting this chip from the block diagram all the way to the <a href="http://www.visual6502.org/JSSim/index.html">silicon transistor level</a> and simulating this countless times in software as well as in hardware and <a href="http://opencores.org/project,cpu6502_true_cycle">FPGA logic</a>.  With all the documentation available on this chip,</p>
+<h2 id="the-project">The Project</h2>
+<p>There are already cycle-accurate implementations of the 6502 on FPGA logic.  This project does not aim to supersede those projects.  Here are the goals of this project:</p>
+<ul>
+<li>Design and test microprocessor design based on the <a href="http://www.6502.org/tutorials/6502opcodes.html">documented MOS 6502 instructions</a>.</li>
+<li>Instructions will operate according to the documented behavior but won&rsquo;t necessarily be implemented in the same way the original instructions were implemented.</li>
+<li>Simplicity, directness, and understandability of the Verilog code will be take precedence over raw performance</li>
+<li>Will not be cycle-accurate.  Instructions won&rsquo;t be delayed unless there is a particular timing issue.</li>
+<li>Instructions may be modified or expanded as the project grows.</li>
+<li>Educating myself and others interested in FPGA design in Verilog as well as the workings of the 6502.</li>
+</ul>
+<h2 id="timeline">Timeline</h2>
+<p>The project will be broken into five parts:</p>
+<ol>
+<li><a href="http://rangeli.net/2016/01/26/MOS-FPGA-ALU.html">The Arithmetic Logic Unit (ALU)</a></li>
+<li>Arithmetic instructions</li>
+<li>Stack-based, memory-based, and other instructions</li>
+<li>Peripheral and processor integration with memory-mapped I/O</li>
+<li>Demo using short assembly program</li>
+</ol>
+<p>All of these will be completed and uploaded throughout spring 2016.</p>
+<p>I hope that my project will be of use to anyone who wants to sharpen their Verilog skills and who wants to understand more about how CPUs work.  Stay tuned for updates!</p>
+
+    </div>
+    
+      
+        <div class="pagination">
+          <div class="pagination__title">
+            <span class="pagination__title-h"
+              >Read other posts</span
+            >
+            <hr />
+          </div>
+          <div class="pagination__buttons">
+            
+              <span class="button previous">
+                <a href="/posts/2016-01-26-mos-fpga-alu/">
+                  <span class="button__icon">←</span>
+                  <span class="button__text">6502 on FPGA: Part I - The ALU Awakens</span>
+                </a>
+              </span>
+            
+            
+              <span class="button next">
+                <a href="/posts/2015-03-04-how-to-create-assembly-only-project-for/">
+                  <span class="button__text">How to Create an Assembly-Only Project for TIVA Launchpad in Code Composer</span>
+                  <span class="button__icon">→</span>
+                </a>
+              </span>
+            
+          </div>
+        </div>
+      
+    
+
+    
+      
+        
+
+      
+    
+  </div>
+
+      </div>
+
+      
+        <footer class="footer">
+  <div class="footer__inner">
+    
+      <a
+  href="/"
+  class="logo"
+  style="text-decoration: none;"
+>
+  
+    <span class="logo__mark"><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44">
+  <path fill="none" d="M15 8l14.729 14.382L15 35.367" />
+</svg>
+</span>
+    <span class="logo__text"
+      >ricardo.angeli</span
+    >
+    <span class="logo__cursor"></span>
+  
+</a>
+
+      <div class="copyright">
+        <span
+          >© 2021 Powered by
+          <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a></span
+        >
+        <span
+          >Theme created by
+          <a href="https://twitter.com/panr" target="_blank" rel="noopener">panr</a></span
+        >
+      </div>
+    
+  </div>
+</footer>
+
+<script src="/assets/main.js"></script>
+<script src="/assets/prism.js"></script>
+
+
+      
+    </div>
+
+    
+  </body>
+</html>

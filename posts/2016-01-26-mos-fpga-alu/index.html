@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+      <title>
+        6502 on FPGA: Part I - The ALU Awakens ::
+        ricardo.angeli
+      </title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta
+  name="description"
+  content="What&amp;rsquo;s an ALU? ALU stands for Arithmetic Logic Unit. It is a device that takes one or two numerical values, performs an arithmetic operation, and then outputs the result. Operations can range from addition to bitwise functions such as OR, XOR, or AND. It&amp;rsquo;s the heart within the processor architecture. Modern processor architectures may include multiple ALUs, but the 6502 keeps it simple with just one.
+The 6502 ALU The implementation of the ALU in the 6502 is simple and only contains what&amp;rsquo;s absolutely necessary, which is great for our efforts in modeling its behavior."
+/>
+<meta
+  name="keywords"
+  content=""
+/>
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="/posts/2016-01-26-mos-fpga-alu/" />
+
+
+
+
+
+<link rel="stylesheet" href="/assets/style.css" />
+
+<link rel="stylesheet" href="/style.css" />
+
+
+<link
+  rel="apple-touch-icon-precomposed"
+  sizes="144x144"
+  href="/img/apple-touch-icon-144-precomposed.png"
+/>
+<link rel="shortcut icon" href="/img/favicon.png" />
+
+
+<link href="/assets/fonts/Inter-Italic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/assets/fonts/Inter-Regular.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/assets/fonts/Inter-Medium.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/assets/fonts/Inter-MediumItalic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/assets/fonts/Inter-Bold.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/assets/fonts/Inter-BoldItalic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="6502 on FPGA: Part I - The ALU Awakens"/>
+<meta name="twitter:description" content="What&rsquo;s an ALU? ALU stands for Arithmetic Logic Unit. It is a device that takes one or two numerical values, performs an arithmetic operation, and then outputs the result. Operations can range from addition to bitwise functions such as OR, XOR, or AND. It&rsquo;s the heart within the processor architecture. Modern processor architectures may include multiple ALUs, but the 6502 keeps it simple with just one.
+The 6502 ALU The implementation of the ALU in the 6502 is simple and only contains what&rsquo;s absolutely necessary, which is great for our efforts in modeling its behavior."/>
+
+
+
+<meta property="og:title" content="6502 on FPGA: Part I - The ALU Awakens" />
+<meta property="og:description" content="What&rsquo;s an ALU? ALU stands for Arithmetic Logic Unit. It is a device that takes one or two numerical values, performs an arithmetic operation, and then outputs the result. Operations can range from addition to bitwise functions such as OR, XOR, or AND. It&rsquo;s the heart within the processor architecture. Modern processor architectures may include multiple ALUs, but the 6502 keeps it simple with just one.
+The 6502 ALU The implementation of the ALU in the 6502 is simple and only contains what&rsquo;s absolutely necessary, which is great for our efforts in modeling its behavior." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/posts/2016-01-26-mos-fpga-alu/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2016-01-26T00:00:00&#43;00:00" />
+<meta property="article:modified_time" content="2016-01-26T00:00:00&#43;00:00" /><meta property="og:site_name" content="ricardo.angeli" />
+
+
+
+
+
+
+
+  </head>
+  <body class="dark-theme">
+    <div class="container">
+      <header class="header">
+  <span class="header__inner">
+    <a
+  href="/"
+  class="logo"
+  style="text-decoration: none;"
+>
+  
+    <span class="logo__mark"><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44">
+  <path fill="none" d="M15 8l14.729 14.382L15 35.367" />
+</svg>
+</span>
+    <span class="logo__text"
+      >ricardo.angeli</span
+    >
+    <span class="logo__cursor"></span>
+  
+</a>
+
+    <span class="header__right">
+      
+        <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+      
+      
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+  </ul>
+</nav>
+
+        <span class="menu-trigger">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M0 0h24v24H0z" fill="none" />
+            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
+          </svg>
+        </span>
+      
+      <span class="theme-toggle">
+        <svg
+  class="theme-toggler"
+  width="24"
+  height="24"
+  viewBox="0 0 48 48"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M22 41C32.4934 41 41 32.4934 41 22C41 11.5066 32.4934 3 22
+  3C11.5066 3 3 11.5066 3 22C3 32.4934 11.5066 41 22 41ZM7 22C7
+  13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22Z"
+  />
+</svg>
+
+      </span>
+    </span>
+  </span>
+</header>
+
+
+      <div class="content">
+        
+  
+  
+
+  <div class="post">
+    <h1 class="post-title">6502 on FPGA: Part I - The ALU Awakens</h1>
+    <div class="post-meta">
+      
+        <span class="post-date">
+          2016-01-26
+        </span>
+
+        
+          
+        
+      
+
+      
+        <span class="post-author"
+          >— Written by R. Angeli</span
+        >
+
+
+      
+        <span class="post-read-time"
+          >— 6 min read</span
+        >
+      
+    </div>
+
+    
+
+    
+
+    <div class="post-content">
+      
+      <p><img src="http://www.rangeli.net/img/alu_awakens_orig.jpg" alt="image"></p>
+<h2 id="whats-an-alu">What&rsquo;s an ALU?</h2>
+<p>ALU stands for <em>Arithmetic Logic Unit</em>.  It is a device that takes one or two numerical values, performs an arithmetic operation, and then outputs the result.  Operations can range from addition to bitwise functions such as <strong>OR, XOR,</strong> or <strong>AND</strong>.  It&rsquo;s the heart within the processor architecture.  Modern processor architectures may include multiple ALUs, but the 6502 keeps it simple with just one.</p>
+<h2 id="the-6502-alu">The 6502 ALU</h2>
+<p>The implementation of the ALU in the 6502 is simple and only contains what&rsquo;s absolutely necessary, which is great for our efforts in modeling its behavior.  It takes in two input values stored in registers, <strong>A &amp; B</strong>, and performs one of the five operations (<strong>addition, bitwise OR, XOR, AND, and right shift</strong>) and then stores the result in the output register.
+<img src="http://www.rangeli.net/img/alu-top-level-overview-2.png" alt="image">
+The processor takes care of deciding which two registers are being fed to the ALU.  Then, all five operations are executed in parallel and the processor decides which buffer will get written to the output register by setting the control bits.  In essence, the control bits which decide which operation is being executed on the inputs.</p>
+<p>There&rsquo;s also an <strong>overflow</strong> status bit which gets outputted when adding two values.  Since the 6502 only supports 8-bit signed values, the result of the addition must range from <strong>-127 to 128</strong>.  If the result is <strong>more than 128</strong>, we have what&rsquo;s called an <strong>overflow</strong>.  If the result comes out to be <strong>less than -127</strong>, then that is an <strong>underflow</strong>.  Whenever either one happens, the 6502 will set the <strong>overflow</strong> bit and the processor will know that the result was out of bounds.</p>
+<p>In the original implementation, the values from the five operations are buffered, but in my implementation they are not and are simply selected using a multiplexer.</p>
+<h2 id="verilog-implementation">Verilog Implementation</h2>
+<p>Implementing this ALU as a Verilog module is very simple.  First off we have our inputs and outputs:</p>
+<!-- raw HTML omitted -->
+<p>The registers should be self-explanatory.  We also have a <strong>5-bit control</strong> input which controls the operation being outputted through a multiplexer.  Lastly, there&rsquo;s our <strong>overflow</strong> status bit which will be elaborated upon soon.</p>
+<p>The bitwise functions are implemented through simple combinatorial functions as shown below:</p>
+<!-- raw HTML omitted -->
+<p>Note that in this implementation, we can shift right multiple times as defined by <!-- raw HTML omitted -->regB<!-- raw HTML omitted -->.  This may or may not result in an additional opcode in the future.</p>
+<p>Really the only challenge in the Verilog ALU is figuring out how to calculate the <strong>overflow</strong> bit.  There is a combinatorial formula I learned back in Digital Systems which is <!-- raw HTML omitted -->V = carryBit[6] XOR carryBit[7]<!-- raw HTML omitted -->.  However, since we are not implementing any carry bits to calculate the addition, this would complicate the code.  This method led to the development of my current algorithm which simply adds an additional bit to both inputs and the outputs and is able to determine using that whether an overflow or underflow occurred.</p>
+<!-- raw HTML omitted -->
+<p>// Perform addition with an extra bit (which is the same as the value of the
+// MSB for the input register)
+// Store the result in sumOut and store the additional bit in extraBit
+{extraBit, sumOut} = {regA[7], regA} + {regB[7], regB};</p>
+<p>// If the extra bit and the MSB of the sum is 0x01, overflow
+// If the extra bit and the MSB of the sum is 0x10, underflow
+// Otherwise the overflow bit is set low
+overflow = ({extraBit, sumOut[7]} == 2&rsquo;b01) || ({extraBit, sumOut[7]} == 2&rsquo;b10);
+end
+<!-- raw HTML omitted --><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<p>The curly braces are Verilog&rsquo;s <a href="http://www.asic-world.com/verilog/operators2.html">concatenation operator</a>.  They combine multiple bits from different variables together into one.  Remember that we are programming this using <strong>HDL</strong> and so these are actually wires.  To a wire it makes no difference where it is being fed from or to; as long as there are two endpoints.</p>
+<p>Finally, the results are multiplexed using a case structure.</p>
+<!-- raw HTML omitted -->
+<h2 id="simulation-and-testing">Simulation and Testing</h2>
+<p>Once I was happy with the ALU module, it was time to develop a test bench.  The test bench feeds input values to the ALU module so we can see the outputs on the simulator.  The file name is <!-- raw HTML omitted -->alu_6502_tb.v<!-- raw HTML omitted -->. Let&rsquo;s begin with the tests!</p>
+<h3 id="addition">Addition</h3>
+<p>The most important of all the tests, here we&rsquo;ll be testing addition, subtraction, addition with overflow, and subtraction with underflow.  Since numbers are represented in <strong>two&rsquo;s complement</strong>, subtraction is simply addition with a negative number.  The <strong>two&rsquo;s complement</strong> of a positive will result in the negative number and vice-versa. Below are the test benches for addition:</p>
+<!-- raw HTML omitted -->
+<p>Note that the results of the overflows that are written in the comments are the results we would expect to get &ndash; along with the overflow flag getting set &ndash; not the correct mathematical result of the equation.</p>
+<p>We run this through our simulator and we find our answers below:</p>
+<p><img src="http://www.rangeli.net/img/alu-addition.png" alt="image"></p>
+<p>The image you are looking at is a screenshot of the output of the simulator.  It is divided into five different signals which correlate to the inputs and outputs of the ALU module.  The green signals are the inputs and the cyan signals are the outputs.  Since there are several wires being monitored, they are combined into <strong>buses</strong> and represented as <strong>hexadecimal numbers</strong>.</p>
+<p>Each of the four groups of signals correlate with the four tests done on the test bench.  All the inputs and outputs match and so the test is passed.  Note that the overflow signal <!-- raw HTML omitted -->v<!-- raw HTML omitted --> is HIGH on the last two tests where an overflow/underflow is triggered.  Looks good!</p>
+<h3 id="bitwise-or">Bitwise OR</h3>
+<p>The remaining tests are very straightforward.  This one is on the bitwise OR function.  Below is our testbench:</p>
+<!-- raw HTML omitted -->
+<p>The OR function is very simple, if there is a ONE bit located in a certain location on either register the result will be ONE at that location.  Otherwise, it&rsquo;s zero.  Here are the results from the simulation:</p>
+<p><img src="http://www.rangeli.net/img/alu-or.png" alt="image"></p>
+<p>One can visually check and realize that the OR function is working as expected in both tests.</p>
+<h3 id="bitwise-xor">Bitwise XOR</h3>
+<p>Ah the XOR operator!  This one acts just like an OR, except if both inputs are set, then the output goes back to zero at that bit. We have two tests for this function:</p>
+<!-- raw HTML omitted -->
+<p>As expected, the tests match the output perfectly!</p>
+<p><img src="http://www.rangeli.net/img/alu-xor.png" alt="image"></p>
+<h3 id="bitwise-and">Bitwise AND</h3>
+<p>The last of our bitwise function is the AND.  If both inputs are HIGH at a certain bit, the output is also HIGH, otherwise it&rsquo;s zero.  Below are the tests:</p>
+<!-- raw HTML omitted -->
+<p>And they match quite well!</p>
+<p><img src="http://www.rangeli.net/img/alu-and.png" alt="image"></p>
+<h3 id="shift-right">Shift Right</h3>
+<p>This final operation simply shifts the value in <!-- raw HTML omitted -->regA<!-- raw HTML omitted --> a number of times defined by the value in <!-- raw HTML omitted -->regB<!-- raw HTML omitted -->.  This behavior is different than the actual opcode on the 6502.  The original instruction can only shift <!-- raw HTML omitted -->regA<!-- raw HTML omitted --> once.  I decided to extend that so we may create an extra opcode later.  Anyway, the test bench is below:</p>
+<!-- raw HTML omitted -->
+<p>Shifting by zero would be pointless as the result would be the same as the input and shifting by eight or more would also be pointless as the result would always just be zero.  Our two tests show some basic shifting and the results from the simulation validate those tests.</p>
+<p><img src="http://www.rangeli.net/img/alu-srs.png" alt="image"></p>
+<h2 id="conclusion">Conclusion</h2>
+<p>The ALU was pretty straightforward to implement but this will serve as the core for the rest of the project.  It was great starting out with this as it served as a warmup exercise in Verilog as well as creating test benches in the simulator.  Really the time spent documenting this was much more than the time it took to make it.  If you want the source code and project files, check out the link below.  Feel free to ask any questions or leave a comment if you found this helpful.  In the meantime, stay tuned for the next part as we get our hands dirty with the processor architecture!</p>
+<p><a href="https://github.com/rangeli/alu_6502">Check it out on GitHub (rangeli/alu_6502)</a></p>
+
+    </div>
+    
+      
+        <div class="pagination">
+          <div class="pagination__title">
+            <span class="pagination__title-h"
+              >Read other posts</span
+            >
+            <hr />
+          </div>
+          <div class="pagination__buttons">
+            
+            
+              <span class="button next">
+                <a href="/posts/2016-01-25-mos-fpga-intro/">
+                  <span class="button__text">6502 on FPGA: An Introduction</span>
+                  <span class="button__icon">→</span>
+                </a>
+              </span>
+            
+          </div>
+        </div>
+      
+    
+
+    
+      
+        
+
+      
+    
+  </div>
+
+      </div>
+
+      
+        <footer class="footer">
+  <div class="footer__inner">
+    
+      <a
+  href="/"
+  class="logo"
+  style="text-decoration: none;"
+>
+  
+    <span class="logo__mark"><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44">
+  <path fill="none" d="M15 8l14.729 14.382L15 35.367" />
+</svg>
+</span>
+    <span class="logo__text"
+      >ricardo.angeli</span
+    >
+    <span class="logo__cursor"></span>
+  
+</a>
+
+      <div class="copyright">
+        <span
+          >© 2021 Powered by
+          <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a></span
+        >
+        <span
+          >Theme created by
+          <a href="https://twitter.com/panr" target="_blank" rel="noopener">panr</a></span
+        >
+      </div>
+    
+  </div>
+</footer>
+
+<script src="/assets/main.js"></script>
+<script src="/assets/prism.js"></script>
+
+
+      
+    </div>
+
+    
+  </body>
+</html>
