@@ -5,21 +5,21 @@
     
     
     
-    <link>/</link>
+    <link>https://rangeli.github.io/</link>
     <description>Recent content on ricardo.angeli</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Tue, 26 Jan 2016 00:00:00 +0000</lastBuildDate>
     
-	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://rangeli.github.io/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>6502 on FPGA: Part I - The ALU Awakens</title>
-      <link>/posts/2016-01-26-mos-fpga-alu/</link>
+      <link>https://rangeli.github.io/posts/2016-01-26-mos-fpga-alu/</link>
       <pubDate>Tue, 26 Jan 2016 00:00:00 +0000</pubDate>
       
-      <guid>/posts/2016-01-26-mos-fpga-alu/</guid>
+      <guid>https://rangeli.github.io/posts/2016-01-26-mos-fpga-alu/</guid>
       <description>
         
           
@@ -37,10 +37,10 @@ The 6502 ALU The implementation of the ALU in the 6502 is simple and only contai
     
     <item>
       <title>6502 on FPGA: An Introduction</title>
-      <link>/posts/2016-01-25-mos-fpga-intro/</link>
+      <link>https://rangeli.github.io/posts/2016-01-25-mos-fpga-intro/</link>
       <pubDate>Mon, 25 Jan 2016 00:00:00 +0000</pubDate>
       
-      <guid>/posts/2016-01-25-mos-fpga-intro/</guid>
+      <guid>https://rangeli.github.io/posts/2016-01-25-mos-fpga-intro/</guid>
       <description>
         
           
@@ -57,10 +57,10 @@ The 6502 ALU The implementation of the ALU in the 6502 is simple and only contai
     
     <item>
       <title>How to Create an Assembly-Only Project for TIVA Launchpad in Code Composer</title>
-      <link>/posts/2015-03-04-how-to-create-assembly-only-project-for/</link>
+      <link>https://rangeli.github.io/posts/2015-03-04-how-to-create-assembly-only-project-for/</link>
       <pubDate>Wed, 04 Mar 2015 06:42:00 -0500</pubDate>
       
-      <guid>/posts/2015-03-04-how-to-create-assembly-only-project-for/</guid>
+      <guid>https://rangeli.github.io/posts/2015-03-04-how-to-create-assembly-only-project-for/</guid>
       <description>
         
           
@@ -77,10 +77,10 @@ The 6502 ALU The implementation of the ALU in the 6502 is simple and only contai
     
     <item>
       <title>Back from the Dead!</title>
-      <link>/posts/2015-03-03-back-from-dead/</link>
+      <link>https://rangeli.github.io/posts/2015-03-03-back-from-dead/</link>
       <pubDate>Tue, 03 Mar 2015 05:22:00 -0500</pubDate>
       
-      <guid>/posts/2015-03-03-back-from-dead/</guid>
+      <guid>https://rangeli.github.io/posts/2015-03-03-back-from-dead/</guid>
       <description>
         
           
@@ -100,10 +100,10 @@ Anyway, I&#39;m going to be making a few posts here about some stuff I&#39;ve be
     
     <item>
       <title>Turn off TV&#39;s with an Arduino</title>
-      <link>/posts/2011-09-22-turn-off-tvs-with-arduino/</link>
+      <link>https://rangeli.github.io/posts/2011-09-22-turn-off-tvs-with-arduino/</link>
       <pubDate>Thu, 22 Sep 2011 23:12:00 -0400</pubDate>
       
-      <guid>/posts/2011-09-22-turn-off-tvs-with-arduino/</guid>
+      <guid>https://rangeli.github.io/posts/2011-09-22-turn-off-tvs-with-arduino/</guid>
       <description>
         
           
@@ -123,10 +123,10 @@ Yeah, I know. &amp;nbsp;It&#39;s like that &#34;
     
     <item>
       <title>Hello World!</title>
-      <link>/posts/2011-09-22-hello-world/</link>
+      <link>https://rangeli.github.io/posts/2011-09-22-hello-world/</link>
       <pubDate>Thu, 22 Sep 2011 20:17:00 -0400</pubDate>
       
-      <guid>/posts/2011-09-22-hello-world/</guid>
+      <guid>https://rangeli.github.io/posts/2011-09-22-hello-world/</guid>
       <description>
         
           

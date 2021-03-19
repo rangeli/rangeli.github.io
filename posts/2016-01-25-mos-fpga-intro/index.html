@@ -18,31 +18,31 @@
   content=""
 />
 <meta name="robots" content="noodp" />
-<link rel="canonical" href="/posts/2016-01-25-mos-fpga-intro/" />
+<link rel="canonical" href="https://rangeli.github.io/posts/2016-01-25-mos-fpga-intro/" />
 
 
 
 
 
-<link rel="stylesheet" href="/assets/style.css" />
+<link rel="stylesheet" href="https://rangeli.github.io/assets/style.css" />
 
-<link rel="stylesheet" href="/style.css" />
+<link rel="stylesheet" href="https://rangeli.github.io/style.css" />
 
 
 <link
   rel="apple-touch-icon-precomposed"
   sizes="144x144"
-  href="/img/apple-touch-icon-144-precomposed.png"
+  href="https://rangeli.github.io/img/apple-touch-icon-144-precomposed.png"
 />
-<link rel="shortcut icon" href="/img/favicon.png" />
+<link rel="shortcut icon" href="https://rangeli.github.io/img/favicon.png" />
 
 
-<link href="/assets/fonts/Inter-Italic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
-<link href="/assets/fonts/Inter-Regular.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
-<link href="/assets/fonts/Inter-Medium.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
-<link href="/assets/fonts/Inter-MediumItalic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
-<link href="/assets/fonts/Inter-Bold.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
-<link href="/assets/fonts/Inter-BoldItalic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="https://rangeli.github.io/assets/fonts/Inter-Italic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="https://rangeli.github.io/assets/fonts/Inter-Regular.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="https://rangeli.github.io/assets/fonts/Inter-Medium.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="https://rangeli.github.io/assets/fonts/Inter-MediumItalic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="https://rangeli.github.io/assets/fonts/Inter-Bold.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="https://rangeli.github.io/assets/fonts/Inter-BoldItalic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
 
 
 <meta name="twitter:card" content="summary"/>
@@ -54,7 +54,7 @@
 <meta property="og:title" content="6502 on FPGA: An Introduction" />
 <meta property="og:description" content="Introduction to the Introduction So during the fall semester 2015, I took an FPGA design class as a technical elective at university. I discovered through the various projects and assignments that I really enjoyed working with FPGAs and addressing the challenges that come with programming logic and thinking in parallel. So to continue this path, I planned out a semester of independent study during spring 2016 where I work on a project where I design my own microprocessor from scratch on an FPGA." />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="/posts/2016-01-25-mos-fpga-intro/" /><meta property="article:section" content="posts" />
+<meta property="og:url" content="https://rangeli.github.io/posts/2016-01-25-mos-fpga-intro/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2016-01-25T00:00:00&#43;00:00" />
 <meta property="article:modified_time" content="2016-01-25T00:00:00&#43;00:00" /><meta property="og:site_name" content="ricardo.angeli" />
 
@@ -180,8 +180,12 @@
 <p><img src="https://upload.wikimedia.org/wikipedia/commons/4/49/MOS_6502AD_4585_top.jpg" alt="image"></p>
 <h2 id="sixty-five-oh-who">Sixty-five-oh-who?</h2>
 <p>It&rsquo;s an 8-bit microprocessor first introduced way back in 1975 by MOS Technology and revolutionized the home computer and game console industry throughout the 80&rsquo;s.  It was the brains of landmark systems such as the Atari, Apple II, Nintendo NES, and Commodore 64.  It has only 3 registers (A, X, and Y) and a stack pointer.  Here&rsquo;s how the assembly language looks like:</p>
-<!-- raw HTML omitted -->
-<p>The fact that it&rsquo;s so simple and so ubiquitous makes this a perfect target to learn about computer architectures and implementing them on an FPGA.  Though it was way before my time, a lot of people grew up with this chip and with the invention of the internet we started seeing countless projects dedicated to documenting this chip from the block diagram all the way to the <a href="http://www.visual6502.org/JSSim/index.html">silicon transistor level</a> and simulating this countless times in software as well as in hardware and <a href="http://opencores.org/project,cpu6502_true_cycle">FPGA logic</a>.  With all the documentation available on this chip,</p>
+<pre><code>LDA #$c0  ;Load the hex value $c0 into the A register
+TAX       ;Transfer the value in the A register to X
+INX       ;Increment the value in the X register
+ADC #$c4  ;Add the hex value $c4 to the A register
+BRK       ;Break - we're done
+</code></pre><p>The fact that it&rsquo;s so simple and so ubiquitous makes this a perfect target to learn about computer architectures and implementing them on an FPGA.  Though it was way before my time, a lot of people grew up with this chip and with the invention of the internet we started seeing countless projects dedicated to documenting this chip from the block diagram all the way to the <a href="http://www.visual6502.org/JSSim/index.html">silicon transistor level</a> and simulating this countless times in software as well as in hardware and <a href="http://opencores.org/project,cpu6502_true_cycle">FPGA logic</a>.  With all the documentation available on this chip,</p>
 <h2 id="the-project">The Project</h2>
 <p>There are already cycle-accurate implementations of the 6502 on FPGA logic.  This project does not aim to supersede those projects.  Here are the goals of this project:</p>
 <ul>
@@ -195,7 +199,7 @@
 <h2 id="timeline">Timeline</h2>
 <p>The project will be broken into five parts:</p>
 <ol>
-<li><a href="http://rangeli.net/2016/01/26/MOS-FPGA-ALU.html">The Arithmetic Logic Unit (ALU)</a></li>
+<li><a href="https://rangeli.github.io/posts/2016-01-26-mos-fpga-alu/">The Arithmetic Logic Unit (ALU)</a></li>
 <li>Arithmetic instructions</li>
 <li>Stack-based, memory-based, and other instructions</li>
 <li>Peripheral and processor integration with memory-mapped I/O</li>
@@ -217,7 +221,7 @@
           <div class="pagination__buttons">
             
               <span class="button previous">
-                <a href="/posts/2016-01-26-mos-fpga-alu/">
+                <a href="https://rangeli.github.io/posts/2016-01-26-mos-fpga-alu/">
                   <span class="button__icon">←</span>
                   <span class="button__text">6502 on FPGA: Part I - The ALU Awakens</span>
                 </a>
@@ -225,7 +229,7 @@
             
             
               <span class="button next">
-                <a href="/posts/2015-03-04-how-to-create-assembly-only-project-for/">
+                <a href="https://rangeli.github.io/posts/2015-03-04-how-to-create-assembly-only-project-for/">
                   <span class="button__text">How to Create an Assembly-Only Project for TIVA Launchpad in Code Composer</span>
                   <span class="button__icon">→</span>
                 </a>
@@ -281,8 +285,8 @@
   </div>
 </footer>
 
-<script src="/assets/main.js"></script>
-<script src="/assets/prism.js"></script>
+<script src="https://rangeli.github.io/assets/main.js"></script>
+<script src="https://rangeli.github.io/assets/prism.js"></script>
 
 
       
