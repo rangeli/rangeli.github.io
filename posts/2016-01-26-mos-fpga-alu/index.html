@@ -167,7 +167,7 @@ The 6502 ALU The implementation of the ALU in the 6502 is simple and only contai
 
       
         <span class="post-read-time"
-          >— 6 min read</span
+          >— 8 min read</span
         >
       
     </div>
@@ -178,68 +178,148 @@ The 6502 ALU The implementation of the ALU in the 6502 is simple and only contai
 
     <div class="post-content">
       
-      <p><img src="http://www.rangeli.net/img/alu_awakens_orig.jpg" alt="image"></p>
+      <p><img src="/img/alu_awakens_orig.jpg" alt="image"></p>
 <h2 id="whats-an-alu">What&rsquo;s an ALU?</h2>
 <p>ALU stands for <em>Arithmetic Logic Unit</em>.  It is a device that takes one or two numerical values, performs an arithmetic operation, and then outputs the result.  Operations can range from addition to bitwise functions such as <strong>OR, XOR,</strong> or <strong>AND</strong>.  It&rsquo;s the heart within the processor architecture.  Modern processor architectures may include multiple ALUs, but the 6502 keeps it simple with just one.</p>
 <h2 id="the-6502-alu">The 6502 ALU</h2>
 <p>The implementation of the ALU in the 6502 is simple and only contains what&rsquo;s absolutely necessary, which is great for our efforts in modeling its behavior.  It takes in two input values stored in registers, <strong>A &amp; B</strong>, and performs one of the five operations (<strong>addition, bitwise OR, XOR, AND, and right shift</strong>) and then stores the result in the output register.
-<img src="http://www.rangeli.net/img/alu-top-level-overview-2.png" alt="image">
+<img src="/img/alu-top-level-overview-2.png" alt="image">
 The processor takes care of deciding which two registers are being fed to the ALU.  Then, all five operations are executed in parallel and the processor decides which buffer will get written to the output register by setting the control bits.  In essence, the control bits which decide which operation is being executed on the inputs.</p>
 <p>There&rsquo;s also an <strong>overflow</strong> status bit which gets outputted when adding two values.  Since the 6502 only supports 8-bit signed values, the result of the addition must range from <strong>-127 to 128</strong>.  If the result is <strong>more than 128</strong>, we have what&rsquo;s called an <strong>overflow</strong>.  If the result comes out to be <strong>less than -127</strong>, then that is an <strong>underflow</strong>.  Whenever either one happens, the 6502 will set the <strong>overflow</strong> bit and the processor will know that the result was out of bounds.</p>
 <p>In the original implementation, the values from the five operations are buffered, but in my implementation they are not and are simply selected using a multiplexer.</p>
 <h2 id="verilog-implementation">Verilog Implementation</h2>
 <p>Implementing this ALU as a Verilog module is very simple.  First off we have our inputs and outputs:</p>
-<!-- raw HTML omitted -->
-<p>The registers should be self-explanatory.  We also have a <strong>5-bit control</strong> input which controls the operation being outputted through a multiplexer.  Lastly, there&rsquo;s our <strong>overflow</strong> status bit which will be elaborated upon soon.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">module <span style="color:#a6e22e">alu_6502</span>(
+	input wire [<span style="color:#ae81ff">7</span><span style="color:#f92672">:</span><span style="color:#ae81ff">0</span>] regA,
+	input wire [<span style="color:#ae81ff">7</span><span style="color:#f92672">:</span><span style="color:#ae81ff">0</span>] regB,
+	input wire [<span style="color:#ae81ff">4</span><span style="color:#f92672">:</span><span style="color:#ae81ff">0</span>] control,
+	output reg [<span style="color:#ae81ff">7</span><span style="color:#f92672">:</span><span style="color:#ae81ff">0</span>] regOut,
+	output reg overflow
+	);
+</code></pre></div><p>The registers should be self-explanatory.  We also have a <strong>5-bit control</strong> input which controls the operation being outputted through a multiplexer.  Lastly, there&rsquo;s our <strong>overflow</strong> status bit which will be elaborated upon soon.</p>
 <p>The bitwise functions are implemented through simple combinatorial functions as shown below:</p>
-<!-- raw HTML omitted -->
-<p>Note that in this implementation, we can shift right multiple times as defined by <!-- raw HTML omitted -->regB<!-- raw HTML omitted -->.  This may or may not result in an additional opcode in the future.</p>
-<p>Really the only challenge in the Verilog ALU is figuring out how to calculate the <strong>overflow</strong> bit.  There is a combinatorial formula I learned back in Digital Systems which is <!-- raw HTML omitted -->V = carryBit[6] XOR carryBit[7]<!-- raw HTML omitted -->.  However, since we are not implementing any carry bits to calculate the addition, this would complicate the code.  This method led to the development of my current algorithm which simply adds an additional bit to both inputs and the outputs and is able to determine using that whether an overflow or underflow occurred.</p>
-<!-- raw HTML omitted -->
-<p>// Perform addition with an extra bit (which is the same as the value of the
-// MSB for the input register)
-// Store the result in sumOut and store the additional bit in extraBit
-{extraBit, sumOut} = {regA[7], regA} + {regB[7], regB};</p>
-<p>// If the extra bit and the MSB of the sum is 0x01, overflow
-// If the extra bit and the MSB of the sum is 0x10, underflow
-// Otherwise the overflow bit is set low
-overflow = ({extraBit, sumOut[7]} == 2&rsquo;b01) || ({extraBit, sumOut[7]} == 2&rsquo;b10);
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">// Combinatorial functions
+</span><span style="color:#75715e"></span>assign orOut <span style="color:#f92672">=</span> regA <span style="color:#f92672">|</span> regB;
+assign xorOut <span style="color:#f92672">=</span> regA <span style="color:#f92672">^</span> regB;
+assign andOut <span style="color:#f92672">=</span> regA <span style="color:#f92672">&amp;</span> regB;
+assign shiftOut <span style="color:#f92672">=</span> regA <span style="color:#f92672">&gt;&gt;</span> regB;
+</code></pre></div><p>Note that in this implementation, we can shift right multiple times as defined by <code>regB</code>.  This may or may not result in an additional opcode in the future.</p>
+<p>Really the only challenge in the Verilog ALU is figuring out how to calculate the <strong>overflow</strong> bit.  There is a combinatorial formula I learned back in Digital Systems which is <code>V = carryBit[6] XOR carryBit[7]</code>.  However, since we are not implementing any carry bits to calculate the addition, this would complicate the code.  This method led to the development of my current algorithm which simply adds an additional bit to both inputs and the outputs and is able to determine using that whether an overflow or underflow occurred.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">// Detect overflow/underflow and perform addition
+</span><span style="color:#75715e"></span>always <span style="color:#960050;background-color:#1e0010">@</span>(<span style="color:#f92672">*</span>) begin
+
+  <span style="color:#75715e">// Perform addition with an extra bit (which is the same as the value of the
+</span><span style="color:#75715e"></span>  <span style="color:#75715e">// MSB for the input register)
+</span><span style="color:#75715e"></span>  <span style="color:#75715e">// Store the result in sumOut and store the additional bit in extraBit
+</span><span style="color:#75715e"></span>  {extraBit, sumOut} <span style="color:#f92672">=</span> {regA[<span style="color:#ae81ff">7</span>], regA} <span style="color:#f92672">+</span> {regB[<span style="color:#ae81ff">7</span>], regB};
+
+  <span style="color:#75715e">// If the extra bit and the MSB of the sum is 0x01, overflow
+</span><span style="color:#75715e"></span>  <span style="color:#75715e">// If the extra bit and the MSB of the sum is 0x10, underflow
+</span><span style="color:#75715e"></span>  <span style="color:#75715e">// Otherwise the overflow bit is set low
+</span><span style="color:#75715e"></span>  overflow <span style="color:#f92672">=</span> ({extraBit, sumOut[<span style="color:#ae81ff">7</span>]} <span style="color:#f92672">==</span> <span style="color:#ae81ff">2</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b01) <span style="color:#f92672">||</span> ({extraBit, sumOut[<span style="color:#ae81ff">7</span>]} <span style="color:#f92672">==</span> <span style="color:#ae81ff">2</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b10);
 end
-<!-- raw HTML omitted --><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
-<p>The curly braces are Verilog&rsquo;s <a href="http://www.asic-world.com/verilog/operators2.html">concatenation operator</a>.  They combine multiple bits from different variables together into one.  Remember that we are programming this using <strong>HDL</strong> and so these are actually wires.  To a wire it makes no difference where it is being fed from or to; as long as there are two endpoints.</p>
+</code></pre></div><p>The curly braces are Verilog&rsquo;s <a href="http://www.asic-world.com/verilog/operators2.html">concatenation operator</a>.  They combine multiple bits from different variables together into one.  Remember that we are programming this using <strong>HDL</strong> and so these are actually wires.  To a wire it makes no difference where it is being fed from or to; as long as there are two endpoints.</p>
 <p>Finally, the results are multiplexed using a case structure.</p>
-<!-- raw HTML omitted -->
-<h2 id="simulation-and-testing">Simulation and Testing</h2>
-<p>Once I was happy with the ALU module, it was time to develop a test bench.  The test bench feeds input values to the ALU module so we can see the outputs on the simulator.  The file name is <!-- raw HTML omitted -->alu_6502_tb.v<!-- raw HTML omitted -->. Let&rsquo;s begin with the tests!</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">// Multiplex the result according to the control
+</span><span style="color:#75715e"></span>always <span style="color:#960050;background-color:#1e0010">@</span>(<span style="color:#f92672">*</span>) begin
+  <span style="color:#66d9ef">case</span>(control)
+    <span style="color:#960050;background-color:#1e0010">`</span>SUMS: regOut <span style="color:#f92672">=</span> sumOut;
+    <span style="color:#960050;background-color:#1e0010">`</span>ORS:  regOut <span style="color:#f92672">=</span> orOut;
+    <span style="color:#960050;background-color:#1e0010">`</span>XORS: regOut <span style="color:#f92672">=</span> xorOut;
+    <span style="color:#960050;background-color:#1e0010">`</span>ANDS: regOut <span style="color:#f92672">=</span> andOut;
+    <span style="color:#960050;background-color:#1e0010">`</span>SRS:  regOut <span style="color:#f92672">=</span> shiftOut;
+  endcase
+end
+</code></pre></div><h2 id="simulation-and-testing">Simulation and Testing</h2>
+<p>Once I was happy with the ALU module, it was time to develop a test bench.  The test bench feeds input values to the ALU module so we can see the outputs on the simulator.  The file name is <code>alu_6502_tb.v</code>. Let&rsquo;s begin with the tests!</p>
 <h3 id="addition">Addition</h3>
 <p>The most important of all the tests, here we&rsquo;ll be testing addition, subtraction, addition with overflow, and subtraction with underflow.  Since numbers are represented in <strong>two&rsquo;s complement</strong>, subtraction is simply addition with a negative number.  The <strong>two&rsquo;s complement</strong> of a positive will result in the negative number and vice-versa. Below are the test benches for addition:</p>
-<!-- raw HTML omitted -->
-<p>Note that the results of the overflows that are written in the comments are the results we would expect to get &ndash; along with the overflow flag getting set &ndash; not the correct mathematical result of the equation.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">// Regular addition: 100 + 11 = 111
+</span><span style="color:#75715e"></span>	a <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b01100100; <span style="color:#75715e">// 100
+</span><span style="color:#75715e"></span>	b <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b00001011; <span style="color:#75715e">// 11
+</span><span style="color:#75715e"></span>	ctrl <span style="color:#f92672">&lt;=</span> <span style="color:#960050;background-color:#1e0010">`</span>SUMS;
+	<span style="color:#75715e">#10
+</span><span style="color:#75715e"></span><span style="color:#75715e">// Regular subtraction: 99 - 88 = 11
+</span><span style="color:#75715e"></span>	a <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b01100011; <span style="color:#75715e">// 99
+</span><span style="color:#75715e"></span>	b <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b10101000; <span style="color:#75715e">// -88
+</span><span style="color:#75715e"></span>	ctrl <span style="color:#f92672">&lt;=</span> <span style="color:#960050;background-color:#1e0010">`</span>SUMS;
+	<span style="color:#75715e">#10
+</span><span style="color:#75715e"></span><span style="color:#75715e">// Overflow: 70 + 60 = -126
+</span><span style="color:#75715e"></span>	a <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b01000110; <span style="color:#75715e">// 70
+</span><span style="color:#75715e"></span>	b <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b00111100; <span style="color:#75715e">// 60
+</span><span style="color:#75715e"></span>	ctrl <span style="color:#f92672">&lt;=</span> <span style="color:#960050;background-color:#1e0010">`</span>SUMS;
+	<span style="color:#75715e">#10
+</span><span style="color:#75715e"></span><span style="color:#75715e">// Underflow: -60 - 70 = 126
+</span><span style="color:#75715e"></span>	a <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b11000100; <span style="color:#75715e">// -60
+</span><span style="color:#75715e"></span>	b <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b10111010; <span style="color:#75715e">// -70
+</span><span style="color:#75715e"></span>	ctrl <span style="color:#f92672">&lt;=</span> <span style="color:#960050;background-color:#1e0010">`</span>SUMS;
+	<span style="color:#75715e">#10
+</span></code></pre></div><p>Note that the results of the overflows that are written in the comments are the results we would expect to get &ndash; along with the overflow flag getting set &ndash; not the correct mathematical result of the equation.</p>
 <p>We run this through our simulator and we find our answers below:</p>
-<p><img src="http://www.rangeli.net/img/alu-addition.png" alt="image"></p>
+<p><img src="/img/alu-addition.png" alt="image"></p>
 <p>The image you are looking at is a screenshot of the output of the simulator.  It is divided into five different signals which correlate to the inputs and outputs of the ALU module.  The green signals are the inputs and the cyan signals are the outputs.  Since there are several wires being monitored, they are combined into <strong>buses</strong> and represented as <strong>hexadecimal numbers</strong>.</p>
-<p>Each of the four groups of signals correlate with the four tests done on the test bench.  All the inputs and outputs match and so the test is passed.  Note that the overflow signal <!-- raw HTML omitted -->v<!-- raw HTML omitted --> is HIGH on the last two tests where an overflow/underflow is triggered.  Looks good!</p>
+<p>Each of the four groups of signals correlate with the four tests done on the test bench.  All the inputs and outputs match and so the test is passed.  Note that the overflow signal <code>v</code> is HIGH on the last two tests where an overflow/underflow is triggered.  Looks good!</p>
 <h3 id="bitwise-or">Bitwise OR</h3>
 <p>The remaining tests are very straightforward.  This one is on the bitwise OR function.  Below is our testbench:</p>
-<!-- raw HTML omitted -->
-<p>The OR function is very simple, if there is a ONE bit located in a certain location on either register the result will be ONE at that location.  Otherwise, it&rsquo;s zero.  Here are the results from the simulation:</p>
-<p><img src="http://www.rangeli.net/img/alu-or.png" alt="image"></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">// LOGICAL OR
+</span><span style="color:#75715e">// 0xAA | 0x55 = 0xFF
+</span><span style="color:#75715e"></span>	a <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b10101010; <span style="color:#75715e">// 0xAA
+</span><span style="color:#75715e"></span>	b <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b01010101; <span style="color:#75715e">// 0x55
+</span><span style="color:#75715e"></span>	ctrl <span style="color:#f92672">&lt;=</span> <span style="color:#960050;background-color:#1e0010">`</span>ORS;
+	<span style="color:#75715e">#10
+</span><span style="color:#75715e"></span><span style="color:#75715e">// 0x75 | 0xC2 = 0xF7
+</span><span style="color:#75715e"></span>	a <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b01110101; <span style="color:#75715e">// 0x75
+</span><span style="color:#75715e"></span>	b <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b11000010; <span style="color:#75715e">// 0xC2
+</span><span style="color:#75715e"></span>	ctrl <span style="color:#f92672">&lt;=</span> <span style="color:#960050;background-color:#1e0010">`</span>ORS;
+	<span style="color:#75715e">#10
+</span></code></pre></div><p>The OR function is very simple, if there is a ONE bit located in a certain location on either register the result will be ONE at that location.  Otherwise, it&rsquo;s zero.  Here are the results from the simulation:</p>
+<p><img src="/img/alu-or.png" alt="image"></p>
 <p>One can visually check and realize that the OR function is working as expected in both tests.</p>
 <h3 id="bitwise-xor">Bitwise XOR</h3>
 <p>Ah the XOR operator!  This one acts just like an OR, except if both inputs are set, then the output goes back to zero at that bit. We have two tests for this function:</p>
-<!-- raw HTML omitted -->
-<p>As expected, the tests match the output perfectly!</p>
-<p><img src="http://www.rangeli.net/img/alu-xor.png" alt="image"></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">// LOGICAL XOR
+</span><span style="color:#75715e">// 0xAA ^ 0x55 = 0xFF
+</span><span style="color:#75715e"></span>	a <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b10101010; <span style="color:#75715e">// 0xAA
+</span><span style="color:#75715e"></span>	b <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b01010101; <span style="color:#75715e">// 0x55
+</span><span style="color:#75715e"></span>	ctrl <span style="color:#f92672">&lt;=</span> <span style="color:#960050;background-color:#1e0010">`</span>XORS;
+	<span style="color:#75715e">#10
+</span><span style="color:#75715e"></span><span style="color:#75715e">// 0x75 ^ 0xC2 = 0xB7
+</span><span style="color:#75715e"></span>	a <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b01110101; <span style="color:#75715e">// 0x75
+</span><span style="color:#75715e"></span>	b <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b11000010; <span style="color:#75715e">// 0xC2
+</span><span style="color:#75715e"></span>	ctrl <span style="color:#f92672">&lt;=</span> <span style="color:#960050;background-color:#1e0010">`</span>XORS;
+	<span style="color:#75715e">#10
+</span></code></pre></div><p>As expected, the tests match the output perfectly!</p>
+<p><img src="/img/alu-xor.png" alt="image"></p>
 <h3 id="bitwise-and">Bitwise AND</h3>
 <p>The last of our bitwise function is the AND.  If both inputs are HIGH at a certain bit, the output is also HIGH, otherwise it&rsquo;s zero.  Below are the tests:</p>
-<!-- raw HTML omitted -->
-<p>And they match quite well!</p>
-<p><img src="http://www.rangeli.net/img/alu-and.png" alt="image"></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">// LOGICAL AND
+</span><span style="color:#75715e">// 0xAA &amp; 0x55 = 0x00
+</span><span style="color:#75715e"></span>	a <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b10101010; <span style="color:#75715e">// 0xAA
+</span><span style="color:#75715e"></span>	b <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b01010101; <span style="color:#75715e">// 0x55
+</span><span style="color:#75715e"></span>	ctrl <span style="color:#f92672">&lt;=</span> <span style="color:#960050;background-color:#1e0010">`</span>ANDS;
+	<span style="color:#75715e">#10
+</span><span style="color:#75715e"></span><span style="color:#75715e">// 0x75 &amp; 0xE4 = 0x64
+</span><span style="color:#75715e"></span>	a <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b01110101; <span style="color:#75715e">// 0x75
+</span><span style="color:#75715e"></span>	b <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b11100100; <span style="color:#75715e">// 0xE4
+</span><span style="color:#75715e"></span>	ctrl <span style="color:#f92672">&lt;=</span> <span style="color:#960050;background-color:#1e0010">`</span>ANDS;
+	<span style="color:#75715e">#10
+</span></code></pre></div><p>And they match quite well!</p>
+<p><img src="/img/alu-and.png" alt="image"></p>
 <h3 id="shift-right">Shift Right</h3>
-<p>This final operation simply shifts the value in <!-- raw HTML omitted -->regA<!-- raw HTML omitted --> a number of times defined by the value in <!-- raw HTML omitted -->regB<!-- raw HTML omitted -->.  This behavior is different than the actual opcode on the 6502.  The original instruction can only shift <!-- raw HTML omitted -->regA<!-- raw HTML omitted --> once.  I decided to extend that so we may create an extra opcode later.  Anyway, the test bench is below:</p>
-<!-- raw HTML omitted -->
-<p>Shifting by zero would be pointless as the result would be the same as the input and shifting by eight or more would also be pointless as the result would always just be zero.  Our two tests show some basic shifting and the results from the simulation validate those tests.</p>
-<p><img src="http://www.rangeli.net/img/alu-srs.png" alt="image"></p>
+<p>This final operation simply shifts the value in <code>regA</code> a number of times defined by the value in <code>regB</code>.  This behavior is different than the actual opcode on the 6502.  The original instruction can only shift <code>regA</code> once.  I decided to extend that so we may create an extra opcode later.  Anyway, the test bench is below:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">// SHIFT RIGHT
+</span><span style="color:#75715e">// 0x3A &gt;&gt; 0x01 = 0x1D
+</span><span style="color:#75715e"></span>	a <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b00111010; <span style="color:#75715e">// 0x3A
+</span><span style="color:#75715e"></span>	b <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b00000001; <span style="color:#75715e">// 0x01
+</span><span style="color:#75715e"></span>	ctrl <span style="color:#f92672">&lt;=</span> <span style="color:#960050;background-color:#1e0010">`</span>SRS;
+	<span style="color:#75715e">#10
+</span><span style="color:#75715e"></span><span style="color:#75715e">// 0x3A &gt;&gt; 0x04 = 0x07
+</span><span style="color:#75715e"></span>	a <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b01110101; <span style="color:#75715e">// 0x3A
+</span><span style="color:#75715e"></span>	b <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">8</span><span style="color:#960050;background-color:#1e0010">&#39;</span>b00000100; <span style="color:#75715e">// 0x04
+</span><span style="color:#75715e"></span>	ctrl <span style="color:#f92672">&lt;=</span> <span style="color:#960050;background-color:#1e0010">`</span>SRS;
+	<span style="color:#75715e">#10
+</span></code></pre></div><p>Shifting by zero would be pointless as the result would be the same as the input and shifting by eight or more would also be pointless as the result would always just be zero.  Our two tests show some basic shifting and the results from the simulation validate those tests.</p>
+<p><img src="/img/alu-srs.png" alt="image"></p>
 <h2 id="conclusion">Conclusion</h2>
 <p>The ALU was pretty straightforward to implement but this will serve as the core for the rest of the project.  It was great starting out with this as it served as a warmup exercise in Verilog as well as creating test benches in the simulator.  Really the time spent documenting this was much more than the time it took to make it.  If you want the source code and project files, check out the link below.  Feel free to ask any questions or leave a comment if you found this helpful.  In the meantime, stay tuned for the next part as we get our hands dirty with the processor architecture!</p>
 <p><a href="https://github.com/rangeli/alu_6502">Check it out on GitHub (rangeli/alu_6502)</a></p>
